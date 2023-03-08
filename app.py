@@ -7,10 +7,10 @@ from utils.set_bot_commands import set_default_commands
 
 
 async def on_startup(dispatcher):
-    # Устанавливаем дефолтные команды
+    # Standart buyruqlarni o'rnatish
     await set_default_commands(dispatcher)
 
-    # Уведомляет про запуск
+    # Ishga tushirish haqida xabar beradi
     await on_startup_notify(dispatcher)
 
 

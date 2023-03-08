@@ -1,21 +1,38 @@
-from aiogram import types
-from aiogram.dispatcher import FSMContext
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.types import Message, CallbackQuery
+from filters.search_quran import quran_uzb
+import logging
+from keyboards.inline.author_tarjima import authors
+from loader import *
 
-from loader import dp
+@dp.message_handler(text="oyatni izlash")
+async def search_oyat(message:types.Message):
+    await message.answer("kimni tarjimasi orqali izlashni hohlaysiz!",reply_markup=authors)
+    await message.delete()
 
+@dp.callback_query_handler(lambda c: c.data == 'uzb-alaaudeenmansou')
+async def quran_tarjima(call:CallbackQuery):
+    await call.answer("siz Alaaudeen Mansour tarjimasini tanladingiz\nistalgan sura va oyat raqamini kiriting ")
+    return 'uzb-alaaudeenmansou'
 
-# Эхо хендлер, куда летят текстовые сообщения без указанного состояния
-@dp.message_handler(state=None)
-async def bot_echo(message: types.Message):
-    await message.answer(f"Эхо без состояния."
-                         f"Сообщение:\n"
-                         f"{message.text}")
+@dp.callback_query_handler(lambda c: c.data =="uzb-alauddinmansour")
+async def quran_tarjima(call:CallbackQuery):
+    await call.answer("siz Alauddin Mansour tarjimasini tanladingiz\nistalgan sura va oyat raqamini kiriting ")
+    return 'uzb-alauddinmansour'
 
+@dp.callback_query_handler(lambda c: c.data =="uzb-muhammadsodikmu")
+async def quran_tarjima(call:CallbackQuery):
+    await call.answer("siz Muhammad Sodik Muhammad Yusuf tarjimasini tanladingiz\nistalgan sura va oyat raqamini kiriting ")
+    return 'uzb-muhammadsodikmu'
 
-# Эхо хендлер, куда летят ВСЕ сообщения с указанным состоянием
-@dp.message_handler(state="*", content_types=types.ContentTypes.ANY)
-async def bot_echo_all(message: types.Message, state: FSMContext):
-    state = await state.get_state()
-    await message.answer(f"Эхо в состоянии <code>{state}</code>.\n"
-                         f"\nСодержание сообщения:\n"
-                         f"<code>{message}</code>")
+@dp.message_handler()
+async def echo(message: types.Message):
+        sura = message.text.split(" ")[0]
+        oyat = message.text.split(" ")[1]
+        sura = int(sura)
+        oyat = int(oyat)
+        name = await quran_tarjima(message) # quran_tarjima funksiyasi ishga tushirildi
+        print(name)
+        url = f"https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1/editions/{name}.json"
+        natija = f"{name} tarjimasi:\n{sura} - sura ({oyat} - oyat) :\n{quran_uzb(sura, oyat, url.format(name))}"
+        await message.answer(natija)
